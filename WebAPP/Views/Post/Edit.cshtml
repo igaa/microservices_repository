@@ -1,0 +1,71 @@
+﻿@model Web.Model.APP.Blogging.Post
+
+@{
+    ViewData["Title"] = "Edit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var lstBlog = (List<Web.Model.APP.Blogging.Blog>)ViewBag.LstBlog;
+    var lstCategorys = (List<Web.Model.APP.Master.Category>)ViewBag.LstCategory;
+}
+
+<h1>Edit</h1>
+
+<h4>Post</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="PostId" />
+            <div class="form-group">
+                <label asp-for="Category" class="control-label"></label>
+                <select asp-for="Category" class="form-control">
+                    @{
+                        <option value="">--Piih Category--</option>
+                        foreach (var item in lstCategorys)
+                        {
+                            <option value="@item.Value">@item.Value</option>
+
+                        }
+                    }
+
+                </select>
+                <span asp-validation-for="Category" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Title" class="control-label"></label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Content" class="control-label"></label>
+                <input asp-for="Content" class="form-control" />
+                <span asp-validation-for="Content" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="BlogId" class="control-label"></label>
+                <select asp-for="BlogId" class="form-control">
+                    @{
+                        <option value="">--Piih Blog--</option>
+                        foreach (var item in lstBlog)
+                        {
+                            <option value="@item.BlogId">@item.Url</option>
+
+                        }
+                    }
+                </select>
+                <span asp-validation-for="BlogId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
