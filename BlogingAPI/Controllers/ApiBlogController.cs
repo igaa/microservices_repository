@@ -40,50 +40,114 @@ namespace Web.Bloging.API.Controllers
 		[HttpPost]
         public async Task<ApiResponseObj> Post()
         {
-            Blog form = HttpContext.Request.ReadFromJsonAsync<Blog>().Result;
-            context.Blogs.Add(form);
-            await context.SaveChangesAsync();
+            using (var trans = context.Database.BeginTransaction())
+            {
+                try
+                {
+                    Blog form = HttpContext.Request.ReadFromJsonAsync<Blog>().Result;
+                    context.Blogs.Add(form);
+                    await context.SaveChangesAsync();
 
-            return new ApiResponseObj()
-			{
-				data = context.Blogs.ToList(),
-				message = "Success add Data!",
-				status = true,
-			};
+                    await trans.CommitAsync();
+
+                    return new ApiResponseObj()
+                    {
+                        data = context.Blogs.ToList(),
+                        message = "Success add Data!",
+                        status = true,
+                    };
+                }
+                catch (Exception ex)
+                {
+                    await trans.RollbackAsync();
+                    return new ApiResponseObj()
+                    {
+                        data = null,
+                        message = "Failed add Data!" + ex.Message,
+                        status = false,
+                    };
+                }
+
+
+            }
+           
 		}
 
 
 		[HttpPost]
 		public async Task<ApiResponseObj> Update()
 		{
-			Blog form = HttpContext.Request.ReadFromJsonAsync<Blog>().Result;
-			var getData = await context.Blogs.Where(s => s.BlogId == form.BlogId).FirstOrDefaultAsync();
-			getData.Url = form.Url;
-			context.Blogs.Update(getData); 
-			await context.SaveChangesAsync();
 
-			return new ApiResponseObj()
-			{
-				data = context.Blogs.ToList(),
-				message = "Success add Data!",
-				status = true,
-			};
+            using (var trans = context.Database.BeginTransaction())
+            {
+                try
+                {
+                    Blog form = HttpContext.Request.ReadFromJsonAsync<Blog>().Result;
+                    var getData = await context.Blogs.Where(s => s.BlogId == form.BlogId).FirstOrDefaultAsync();
+                    getData.Url = form.Url;
+                    context.Blogs.Update(getData);
+                    await context.SaveChangesAsync();
+
+                    await trans.CommitAsync();
+
+                    return new ApiResponseObj()
+                    {
+                        data = context.Blogs.ToList(),
+                        message = "Success update Data!",
+                        status = true,
+                    };
+                }
+                catch (Exception ex)
+                {
+                    await trans.RollbackAsync();
+                    return new ApiResponseObj()
+                    {
+                        data = null,
+                        message = "Failed update Data!" + ex.Message,
+                        status = false,
+                    };
+                }
+
+
+            }
+            
 		}
 
 		[HttpPost]
 		public async Task<ApiResponseObj> Delete()
 		{
-			Blog form = HttpContext.Request.ReadFromJsonAsync<Blog>().Result;
-			var getData = await context.Blogs.Where(s => s.BlogId == form.BlogId).FirstOrDefaultAsync();
-			context.Blogs.Remove(getData);
-            await context.SaveChangesAsync();
+            using (var trans = context.Database.BeginTransaction())
+            {
+                try
+                {
+                    Blog form = HttpContext.Request.ReadFromJsonAsync<Blog>().Result;
+                    var getData = await context.Blogs.Where(s => s.BlogId == form.BlogId).FirstOrDefaultAsync();
+                    context.Blogs.Remove(getData);
+                    await context.SaveChangesAsync();
 
-            return new ApiResponseObj()
-			{
-				data = context.Blogs.ToList(),
-				message = "Success add Data!",
-				status = true,
-			};
+                    await trans.CommitAsync();
+
+                    return new ApiResponseObj()
+                    {
+                        data = context.Blogs.ToList(),
+                        message = "Success delete Data!",
+                        status = true,
+                    };
+                }
+                catch (Exception ex)
+                {
+                    await trans.RollbackAsync();
+                    return new ApiResponseObj()
+                    {
+                        data = null,
+                        message = "Failed delete Data!" + ex.Message,
+                        status = false,
+                    };
+                }
+
+
+            }
+            
 		}
 
 	}

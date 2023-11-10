@@ -40,27 +40,37 @@ namespace Web.Master.API.Controllers
 		[HttpPost]
         public async Task<ApiResponseObj> Post()
         {
-			try
-			{
-                Category form = HttpContext.Request.ReadFromJsonAsync<Category>().Result;
-                context.Categories.Add(form);
-                await context.SaveChangesAsync();
-                return new ApiResponseObj()
+            using (var trans = context.Database.BeginTransaction())
+            {
+                try
                 {
-                    data = context.Categories.ToList(),
-                    message = "Success add Data!",
-                    status = true,
-                };
-            }
-			catch (Exception ex)
-			{
-                return new ApiResponseObj()
+                    Category form = HttpContext.Request.ReadFromJsonAsync<Category>().Result;
+                    context.Categories.Add(form);
+                    await context.SaveChangesAsync();
+                    await trans.CommitAsync();
+                    return new ApiResponseObj()
+                    {
+                        data = context.Categories.ToList(),
+                        message = "Success add Data!",
+                        status = true,
+                    };
+
+					
+                }
+                catch (Exception ex)
                 {
-                    data = context.Categories.ToList(),
-                    message = "Failed add Data!" + ex.Message,
-                    status = true,
-                };
+					await trans.RollbackAsync(); 
+                    return new ApiResponseObj()
+                    {
+                        data = context.Categories.ToList(),
+                        message = "Failed add Data!" + ex.Message,
+                        status = false,
+                    };
+                }
+
             }
+
+            
             
 
 			
@@ -70,35 +80,76 @@ namespace Web.Master.API.Controllers
 		[HttpPost]
 		public async Task<ApiResponseObj> Update()
 		{
-			Category form = HttpContext.Request.ReadFromJsonAsync<Category>().Result;
-			var getData = await context.Categories.Where(s => s.Id == form.Id).FirstOrDefaultAsync();
-			getData.Name = form.Name;
-			getData.Value = form.Value; 
-			context.Categories.Update(getData);
-			await context.SaveChangesAsync();
+            using (var trans = context.Database.BeginTransaction())
+            {
+				try
+				{
+                    Category form = HttpContext.Request.ReadFromJsonAsync<Category>().Result;
+                    var getData = await context.Categories.Where(s => s.Id == form.Id).FirstOrDefaultAsync();
+                    getData.Name = form.Name;
+                    getData.Value = form.Value;
+                    context.Categories.Update(getData);
+                    await context.SaveChangesAsync();
+                    await trans.CommitAsync();
 
-			return new ApiResponseObj()
-			{
-				data = context.Categories.ToList(),
-				message = "Success add Data!",
-				status = true,
-			};
+                    return new ApiResponseObj()
+                    {
+                        data = context.Categories.ToList(),
+                        message = "Success update Data!",
+                        status = true,
+                    };
+                }
+				catch (Exception ex)
+				{
+                    await trans.RollbackAsync();
+                    return new ApiResponseObj()
+                    {
+                        data = context.Categories.ToList(),
+                        message = "Failed update Data!" + ex.Message,
+                        status = false,
+                    };
+                }
+            
+            }
+              
 		}
 
 		[HttpPost]
 		public async Task<ApiResponseObj> Delete()
 		{
-			Category form = HttpContext.Request.ReadFromJsonAsync<Category>().Result;
-			var getData = await context.Categories.Where(s => s.Id == form.Id).FirstOrDefaultAsync();
-			context.Categories.Remove(getData);
-			context.SaveChanges();
 
-			return new ApiResponseObj()
-			{
-				data = context.Categories.ToList(),
-				message = "Success add Data!",
-				status = true,
-			};
+            using (var trans = context.Database.BeginTransaction())
+            {
+                try
+                {
+                    Category form = HttpContext.Request.ReadFromJsonAsync<Category>().Result;
+                    var getData = await context.Categories.Where(s => s.Id == form.Id).FirstOrDefaultAsync();
+                    context.Categories.Remove(getData);
+                    await context.SaveChangesAsync();
+                    await trans.CommitAsync();
+
+                    return new ApiResponseObj()
+                    {
+                        data = context.Categories.ToList(),
+                        message = "Success delete Data!",
+                        status = true,
+                    };
+
+                }
+                catch (Exception ex)
+                {
+                    await trans.RollbackAsync();
+                    return new ApiResponseObj()
+                    {
+                        data = context.Categories.ToList(),
+                        message = "Failed delete Data!" + ex.Message,
+                        status = false,
+                    };
+                }
+            
+            
+            }
+              
 		}
 
 	}
